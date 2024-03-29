@@ -118,3 +118,7 @@ func (c *KVStoreClient) GenerateTx() ([]byte, error) {
 	v := []byte(randStr(c.valueLen))
 	return append(k, append([]byte("="), v...)...), nil
 }
+
+func (c *KVStoreClient) ResponseChan() chan<- *RPCResponse {
+	return nil
+}

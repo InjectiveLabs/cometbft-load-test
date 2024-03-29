@@ -18,6 +18,10 @@ type Client interface {
 	// GenerateTx must generate a raw transaction to be sent to the relevant
 	// broadcast_tx method for a given endpoint.
 	GenerateTx() ([]byte, error)
+
+	// ResponseChan retrieves a channel to send txn responses into
+	// for Client to handle, if needed
+	ResponseChan() chan<- *RPCResponse
 }
 
 // Our global registry of client factories

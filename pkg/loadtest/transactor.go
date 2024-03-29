@@ -146,7 +146,6 @@ func (t *Transactor) GetTxRate() float64 {
 func (t *Transactor) receiveLoop() {
 	defer t.wg.Done()
 	for {
-		// right now we don't care about what we read back from the RPC endpoint
 		_, m, err := t.conn.ReadMessage()
 		if err != nil {
 			if !websocket.IsCloseError(err, websocket.CloseNormalClosure) {
@@ -154,7 +153,18 @@ func (t *Transactor) receiveLoop() {
 				return
 			}
 		}
-		t.logger.Debug("Received", "msg", string(m))
+
+		t.logger.Debug("Received message", "msg", string(m))
+		// now try to parse the message and send it to back to client for handling, if needed
+		if resCh := t.client.ResponseChan(); resCh != nil {
+			var jsonResp RPCResponse
+			if err := json.Unmarshal(m, &jsonResp); err != nil {
+				t.logger.Error("Failed to unmarshal response on connection", "err", err)
+				return
+			}
+			resCh <- &jsonResp
+		}
+
 		if t.mustStop() {
 			return
 		}
