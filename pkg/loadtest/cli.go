@@ -130,6 +130,9 @@ func buildCLI(cli *CLIConfig, logger logging.Logger) *cobra.Command {
 	rootCmd.AddCommand(coordCmd)
 	rootCmd.AddCommand(workerCmd)
 	rootCmd.AddCommand(versionCmd)
+
+	rootCmd.FParseErrWhitelist = cobra.FParseErrWhitelist{UnknownFlags: true}
+
 	return rootCmd
 }
 
