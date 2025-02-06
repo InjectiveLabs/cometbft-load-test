@@ -24,13 +24,15 @@ type CLIConfig struct {
 	AppShortDesc         string
 	AppLongDesc          string
 	DefaultClientFactory string
+
+	LoadConfig Config
 }
 
 var flagVerbose bool
 
 func buildCLI(cli *CLIConfig, logger logging.Logger) *cobra.Command {
 	cobra.OnInitialize(func() { initLogLevel(logger) })
-	var cfg Config
+	cfg := cli.LoadConfig
 	rootCmd := &cobra.Command{
 		Use:   cli.AppName,
 		Short: cli.AppShortDesc,
@@ -48,20 +50,20 @@ func buildCLI(cli *CLIConfig, logger logging.Logger) *cobra.Command {
 		},
 	}
 	rootCmd.PersistentFlags().StringVar(&cfg.ClientFactory, "client-factory", cli.DefaultClientFactory, "The identifier of the client factory to use for generating load testing transactions")
-	rootCmd.PersistentFlags().IntVarP(&cfg.Connections, "connections", "c", 1, "The number of connections to open to each endpoint simultaneously")
-	rootCmd.PersistentFlags().IntVarP(&cfg.Time, "time", "T", 60, "The duration (in seconds) for which to handle the load test")
-	rootCmd.PersistentFlags().IntVarP(&cfg.SendPeriod, "send-period", "p", 1, "The period (in seconds) at which to send batches of transactions")
-	rootCmd.PersistentFlags().IntVarP(&cfg.Rate, "rate", "r", 1000, "The number of transactions to generate each second on each connection, to each endpoint")
-	rootCmd.PersistentFlags().IntVarP(&cfg.Size, "size", "s", 250, "The size of each transaction, in bytes - must be greater than 40")
-	rootCmd.PersistentFlags().IntVarP(&cfg.Count, "count", "N", -1, "The maximum number of transactions to send - set to -1 to turn off this limit")
-	rootCmd.PersistentFlags().StringVar(&cfg.BroadcastTxMethod, "broadcast-tx-method", "async", "The broadcast_tx method to use when submitting transactions - can be async, sync or commit")
-	rootCmd.PersistentFlags().StringSliceVar(&cfg.Endpoints, "endpoints", []string{}, "A comma-separated list of URLs indicating CometBFT WebSockets RPC endpoints to which to connect")
-	rootCmd.PersistentFlags().StringVar(&cfg.EndpointSelectMethod, "endpoint-select-method", SelectSuppliedEndpoints, "The method by which to select endpoints")
-	rootCmd.PersistentFlags().IntVar(&cfg.ExpectPeers, "expect-peers", 0, "The minimum number of peers to expect when crawling the P2P network from the specified endpoint(s) prior to waiting for workers to connect")
-	rootCmd.PersistentFlags().IntVar(&cfg.MaxEndpoints, "max-endpoints", 0, "The maximum number of endpoints to use for testing, where 0 means unlimited")
-	rootCmd.PersistentFlags().IntVar(&cfg.PeerConnectTimeout, "peer-connect-timeout", 600, "The number of seconds to wait for all required peers to connect if expect-peers > 0")
-	rootCmd.PersistentFlags().IntVar(&cfg.MinConnectivity, "min-peer-connectivity", 0, "The minimum number of peers to which each peer must be connected before starting the load test")
-	rootCmd.PersistentFlags().StringVar(&cfg.StatsOutputFile, "stats-output", "", "Where to store aggregate statistics (in CSV format) for the load test")
+	rootCmd.PersistentFlags().IntVarP(&cfg.Connections, "connections", "c", cfg.Connections, "The number of connections to open to each endpoint simultaneously")
+	rootCmd.PersistentFlags().IntVarP(&cfg.Time, "time", "T", cfg.Time, "The duration (in seconds) for which to handle the load test")
+	rootCmd.PersistentFlags().IntVarP(&cfg.SendPeriod, "send-period", "p", cfg.SendPeriod, "The period (in seconds) at which to send batches of transactions")
+	rootCmd.PersistentFlags().IntVarP(&cfg.Rate, "rate", "r", cfg.Rate, "The number of transactions to generate each second on each connection, to each endpoint")
+	rootCmd.PersistentFlags().IntVarP(&cfg.Size, "size", "s", cfg.Size, "The size of each transaction, in bytes - must be greater than 40")
+	rootCmd.PersistentFlags().IntVarP(&cfg.Count, "count", "N", cfg.Count, "The maximum number of transactions to send - set to -1 to turn off this limit")
+	rootCmd.PersistentFlags().StringVar(&cfg.BroadcastTxMethod, "broadcast-tx-method", cfg.BroadcastTxMethod, "The broadcast_tx method to use when submitting transactions - can be async, sync or commit")
+	rootCmd.PersistentFlags().StringSliceVar(&cfg.Endpoints, "endpoints", cfg.Endpoints, "A comma-separated list of URLs indicating CometBFT WebSockets RPC endpoints to which to connect")
+	rootCmd.PersistentFlags().StringVar(&cfg.EndpointSelectMethod, "endpoint-select-method", cfg.EndpointSelectMethod, "The method by which to select endpoints")
+	rootCmd.PersistentFlags().IntVar(&cfg.ExpectPeers, "expect-peers", cfg.ExpectPeers, "The minimum number of peers to expect when crawling the P2P network from the specified endpoint(s) prior to waiting for workers to connect")
+	rootCmd.PersistentFlags().IntVar(&cfg.MaxEndpoints, "max-endpoints", cfg.MaxEndpoints, "The maximum number of endpoints to use for testing, where 0 means unlimited")
+	rootCmd.PersistentFlags().IntVar(&cfg.PeerConnectTimeout, "peer-connect-timeout", cfg.PeerConnectTimeout, "The number of seconds to wait for all required peers to connect if expect-peers > 0")
+	rootCmd.PersistentFlags().IntVar(&cfg.MinConnectivity, "min-peer-connectivity", cfg.MinConnectivity, "The minimum number of peers to which each peer must be connected before starting the load test")
+	rootCmd.PersistentFlags().StringVar(&cfg.StatsOutputFile, "stats-output", cfg.StatsOutputFile, "Where to store aggregate statistics (in CSV format) for the load test")
 	rootCmd.PersistentFlags().BoolVarP(&flagVerbose, "verbose", "v", false, "Increase output logging verbosity to DEBUG level")
 
 	var coordCfg CoordinatorConfig
